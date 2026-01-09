@@ -31,7 +31,7 @@ export const updateProfile = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: "No data provided" });
         }
 
-        
+
         const updatedProfile = await ProfileModel.findOneAndUpdate(
             { email: email },
             { $set: updateData },
@@ -63,6 +63,11 @@ export const readProfile = async (req: Request, res: Response) => {
     }
 }
 
+type Project = {
+    title?: string;
+    description?: string;
+    links?: any;
+};
 
 export const getProjectsBySkills = async (req: Request, res: Response) => {
     try {
@@ -75,14 +80,26 @@ export const getProjectsBySkills = async (req: Request, res: Response) => {
         if (!skills) {
             return res.json(profile.projects);
         }
-
-        const filtered = profile.projects.filter(proj =>
-            Array.isArray(skills) ? skills.some(skill => proj.description?.toLowerCase().includes((skill as string).toLowerCase())) :
-                proj.description?.toLowerCase().includes((skills as string).toLowerCase())
-        ) || profile.projects.filter(proj =>
-            Array.isArray(skills) ? skills.some(skill => proj.title?.toLowerCase().includes((skill as string).toLowerCase())) :
-                proj.title?.toLowerCase().includes((skills as string).toLowerCase())
-        );
+        const projects = profile.projects.toObject() as Project[];
+        const filtered =
+            projects.filter((proj) =>
+                Array.isArray(skills)
+                    ? skills.some((skill) =>
+                        proj.description?.toLowerCase().includes((skill as string).toLowerCase())
+                    )
+                    : proj.description?.toLowerCase().includes(
+                        (skills as string).toLowerCase()
+                    )
+            ) ||
+            projects.filter((proj) =>
+                Array.isArray(skills)
+                    ? skills.some((skill) =>
+                        proj.title?.toLowerCase().includes((skill as string).toLowerCase())
+                    )
+                    : proj.title?.toLowerCase().includes(
+                        (skills as string).toLowerCase()
+                    )
+            );
 
         return res.status(200).json({ success: true, message: filtered })
     } catch (error) {
@@ -119,10 +136,10 @@ export const globleSearch = async (req: Request, res: Response) => {
             ]
         });
 
-        return res.status(200).json({success : true , results})
+        return res.status(200).json({ success: true, results })
 
     } catch (error) {
         console.log(error);
-         return res.status(500).json({ success: false, message: 'Internal server error' });
+        return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
